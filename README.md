@@ -1,17 +1,23 @@
 # Banking Demo Application
 
-## Architecture
+## Diagrams
+
+![Overview Architecture](./docs/diagrams/architecture.mmd)
+
+## Technical stack
 
 ## Folder Structures
 
 ## Quick Start
 
-## Note
-micro service
+```sh
+# /
+docker compose up -d --build
+```
 
-Quick start: 
-Docker compose up
-
+After running:
 - **Frontend**: http://localhost:3000
 - **API (qua Kong)**: http://localhost:8000
 - **Kong Admin**: http://localhost:8001
+
+

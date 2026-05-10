@@ -1,0 +1,42 @@
+flowchart TB
+    subgraph User
+        Browser[Trình duyệt]
+    end
+
+    subgraph Frontend
+        FE[React + Nginx :3000]
+    end
+
+    subgraph Gateway
+        Kong[Kong API Gateway :8000]
+    end
+
+    subgraph Microservices
+        Auth[auth-service :8001]
+        Account[account-service :8002]
+        Transfer[transfer-service :8003]
+        Notif[notification-service :8004]
+    end
+
+    subgraph Data
+        PG[(PostgreSQL :5432)]
+        Redis[(Redis :6379)]
+    end
+
+    Browser -->|"/"| FE
+    Browser -->|"/api/*, /ws"| Kong
+    FE -->|API calls| Kong
+
+    Kong -->|/api/auth| Auth
+    Kong -->|/api/account| Account
+    Kong -->|/api/transfer| Transfer
+    Kong -->|/api/notifications, /ws| Notif
+
+    Auth --> PG
+    Auth --> Redis
+    Account --> PG
+    Account --> Redis
+    Transfer --> PG
+    Transfer --> Redis
+    Notif --> PG
+    Notif --> Redis
