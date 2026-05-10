@@ -17,7 +17,7 @@ docker compose up -d --build
 
 After running:
 - **Frontend**: http://localhost:3000
-- **API (qua Kong)**: http://localhost:8000
+- **API (through Kong)**: http://localhost:8000
 - **Kong Admin**: http://localhost:8001
 
 
