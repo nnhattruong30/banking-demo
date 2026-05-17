@@ -3,7 +3,7 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
-output "vpc_cidr" {
+output "vpc_cidr_block" {
   description = "CIDR block of the VPC"
   value       = module.vpc.vpc_cidr_block
 }
@@ -26,11 +26,6 @@ output "internet_gateway_id" {
 output "nat_gateway_ids" {
   description = "IDs of the NAT Gateways"
   value       = module.vpc.natgw_ids
-}
-
-output "public_route_table_id" {
-  description = "ID of the public route table"
-  value       = module.vpc.public_route_table_id
 }
 
 output "private_route_table_ids" {

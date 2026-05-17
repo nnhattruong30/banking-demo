@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region to deploy the VPC into"
   type        = string
-  default     = "ap-southeast-1"
+  default     = "us-east-1"
 }
 
 variable "project_name" {
@@ -25,7 +25,7 @@ variable "vpc_cidr" {
 variable "availability_zones" {
   description = "List of AZs to create subnets in"
   type        = list(string)
-  default     = ["ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"]
+  default     = ["us-east-1a"]
 }
 
 variable "enable_nat_gateway" {
