@@ -15,3 +15,19 @@ module "vpc" {
   enable_nat_gateway = var.enable_nat_gateway
   tags               = local.tags
 }
+
+module "eks" {
+  source = "./modules/eks"
+
+  cluster_name       = "${var.project_name}-eks"
+  kubernetes_version = var.kubernetes_version
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = module.vpc.private_subnet_ids
+
+  node_instance_type = var.node_instance_type
+  node_desired_size  = var.node_desired_size
+  node_min_size      = var.node_min_size
+  node_max_size      = var.node_max_size
+
+  tags = local.tags
+}
