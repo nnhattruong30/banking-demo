@@ -26,6 +26,7 @@ module "eks" {
       before_compute = true
     }
     kube-proxy = {}
+    metric-server = {}
     vpc-cni = {
       before_compute = true
     }
