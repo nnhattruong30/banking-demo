@@ -1,6 +1,7 @@
 locals {
-  public_subnets  = [cidrsubnet(var.vpc_cidr, 8, 0)]
-  private_subnets = [cidrsubnet(var.vpc_cidr, 8, 10)]
+  # One /24 public subnet and one /24 private subnet per AZ
+  public_subnets  = [for i, _ in var.availability_zones : cidrsubnet(var.vpc_cidr, 8, i)]
+  private_subnets = [for i, _ in var.availability_zones : cidrsubnet(var.vpc_cidr, 8, i + 10)]
 }
 
 module "vpc" {

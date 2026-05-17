@@ -14,6 +14,10 @@ module "eks" {
   vpc_id     = var.vpc_id
   subnet_ids = var.subnet_ids
 
+  upgrade_policy = {
+    support_type = "STANDARD"   # disables extended support (avoids extra charges)
+  }
+
   # Core add-ons — vpc-cni and pod-identity-agent are marked before_compute
   # so they are ready before the node group joins the cluster
   addons = {

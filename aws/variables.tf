@@ -25,7 +25,7 @@ variable "vpc_cidr" {
 variable "availability_zones" {
   description = "List of AZs to create subnets in"
   type        = list(string)
-  default     = ["us-east-1a"]
+  default     = ["us-east-1a", "us-east-1b"]
 }
 
 variable "enable_nat_gateway" {
@@ -45,7 +45,7 @@ variable "tags" {
 variable "kubernetes_version" {
   description = "Kubernetes version for the EKS cluster"
   type        = string
-  default     = "1.33"
+  default     = "1.35"
 }
 
 variable "node_instance_type" {
@@ -69,5 +69,5 @@ variable "node_min_size" {
 variable "node_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
-  default     = 3
+  default     = 2
 }
