@@ -77,3 +77,34 @@ variable "update_kubeconfig" {
   type        = bool
   default     = true
 }
+
+# ── EC2 ────────────────────────────────────────────────────────────────────────
+
+variable "ec2_instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "ec2_subnet_placement" {
+  description = "Place the EC2 instance in a 'public' or 'private' subnet"
+  type        = string
+  default     = "private"
+
+  validation {
+    condition     = contains(["public", "private"], var.ec2_subnet_placement)
+    error_message = "ec2_subnet_placement must be either 'public' or 'private'."
+  }
+}
+
+variable "ec2_key_name" {
+  description = "EC2 key pair name for SSH access. Leave empty for no key pair"
+  type        = string
+  default     = ""
+}
+
+variable "ec2_allowed_ssh_cidrs" {
+  description = "CIDR blocks allowed to reach port 22. Empty list disables SSH ingress"
+  type        = list(string)
+  default     = []
+}

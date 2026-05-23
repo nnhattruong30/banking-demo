@@ -33,6 +33,23 @@ output "private_route_table_ids" {
   value       = module.vpc.private_route_table_ids
 }
 
+# ── EC2 ────────────────────────────────────────────────────────────────────────
+
+output "ec2_instance_id" {
+  description = "ID of the EC2 instance"
+  value       = module.ec2.instance_id
+}
+
+output "ec2_private_ip" {
+  description = "Private IP of the EC2 instance"
+  value       = module.ec2.private_ip
+}
+
+output "ec2_public_ip" {
+  description = "Public IP of the EC2 instance (only set when ec2_subnet_placement = 'public')"
+  value       = module.ec2.public_ip
+}
+
 # ── EKS ────────────────────────────────────────────────────────────────────────
 
 output "cluster_name" {

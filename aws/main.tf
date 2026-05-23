@@ -16,20 +16,36 @@ module "vpc" {
   tags               = local.tags
 }
 
-module "eks" {
-  source = "./modules/eks"
+module "ec2" {
+  source = "./modules/ec2"
 
-  cluster_name       = "${var.project_name}-eks"
-  kubernetes_version = var.kubernetes_version
+  name               = "${var.project_name}-bastion"
   vpc_id             = module.vpc.vpc_id
-  subnet_ids         = module.vpc.private_subnet_ids
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  private_subnet_ids = module.vpc.private_subnet_ids
 
-  node_instance_type = var.node_instance_type
-  node_desired_size  = var.node_desired_size
-  node_min_size      = var.node_min_size
-  node_max_size      = var.node_max_size
-
-  update_kubeconfig = var.update_kubeconfig
+  subnet_placement  = var.ec2_subnet_placement
+  instance_type     = var.ec2_instance_type
+  key_name          = var.ec2_key_name
+  allowed_ssh_cidrs = var.ec2_allowed_ssh_cidrs
 
   tags = local.tags
 }
+
+# module "eks" {
+#   source = "./modules/eks"
+
+#   cluster_name       = "${var.project_name}-eks"
+#   kubernetes_version = var.kubernetes_version
+#   vpc_id             = module.vpc.vpc_id
+#   subnet_ids         = module.vpc.private_subnet_ids
+
+#   node_instance_type = var.node_instance_type
+#   node_desired_size  = var.node_desired_size
+#   node_min_size      = var.node_min_size
+#   node_max_size      = var.node_max_size
+
+#   update_kubeconfig = var.update_kubeconfig
+
+#   tags = local.tags
+# }
