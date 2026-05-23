@@ -48,3 +48,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "update_kubeconfig" {
+  description = "Whether to run aws eks update-kubeconfig after cluster creation"
+  type        = bool
+  default     = true
+}

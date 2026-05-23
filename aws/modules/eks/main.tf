@@ -26,7 +26,7 @@ module "eks" {
       before_compute = true
     }
     kube-proxy = {}
-    metric-server = {}
+    metrics-server = {}
     vpc-cni = {
       before_compute = true
     }
@@ -45,4 +45,16 @@ module "eks" {
   }
 
   tags = var.tags
+}
+
+data "aws_region" "current" {}
+
+resource "null_resource" "update_kubeconfig" {
+  count = var.update_kubeconfig ? 1 : 0
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${data.aws_region.current.region}"
+  }
+
+  depends_on = [module.eks]
 }

@@ -29,5 +29,7 @@ module "eks" {
   node_min_size      = var.node_min_size
   node_max_size      = var.node_max_size
 
+  update_kubeconfig = var.update_kubeconfig
+
   tags = local.tags
 }

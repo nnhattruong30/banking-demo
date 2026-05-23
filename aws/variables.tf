@@ -71,3 +71,9 @@ variable "node_max_size" {
   type        = number
   default     = 2
 }
+
+variable "update_kubeconfig" {
+  description = "Whether to update the local kubeconfig after EKS cluster creation"
+  type        = bool
+  default     = true
+}
