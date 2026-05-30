@@ -52,7 +52,7 @@ resource "aws_security_group" "ec2" {
 
 module "ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "~> 5.0"
+  version = "~> 6.0"
 
   name          = var.name
   ami           = local.ami_id
@@ -63,14 +63,12 @@ module "ec2" {
   key_name                    = var.key_name != "" ? var.key_name : null
   vpc_security_group_ids      = [aws_security_group.ec2.id]
 
-  root_block_device = [
-    {
-      volume_size           = var.root_volume_size
-      volume_type           = "gp3"
-      encrypted             = true
-      delete_on_termination = true
-    }
-  ]
+  root_block_device = {
+    size                  = var.root_volume_size
+    type                  = "gp3"
+    encrypted             = true
+    delete_on_termination = true
+  }
 
   metadata_options = {
     http_tokens = "required" # IMDSv2 enforced
