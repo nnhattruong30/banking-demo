@@ -4,30 +4,106 @@ locals {
   private_subnets = [for i, _ in var.availability_zones : cidrsubnet(var.vpc_cidr, 8, i + 10)]
 }
 
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 6.0"
-
-  name = var.name
-  cidr = var.vpc_cidr
-
-  azs             = var.availability_zones
-  public_subnets  = local.public_subnets
-  private_subnets = local.private_subnets
-
-  enable_nat_gateway = var.enable_nat_gateway
-  single_nat_gateway = true
-
+resource "aws_vpc" "this" {
+  cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  # Lock down the default security group (CIS benchmark)
-  manage_default_security_group  = true
-  default_security_group_ingress = []
-  default_security_group_egress  = []
+  tags = merge(var.tags, { Name = var.name })
+}
 
-  public_subnet_tags  = { Tier = "public" }
-  private_subnet_tags = { Tier = "private" }
+# Lock down the default security group (CIS benchmark)
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+}
 
-  tags = var.tags
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = merge(var.tags, { Name = "${var.name}-igw" })
+}
+
+resource "aws_subnet" "public" {
+  count = length(var.availability_zones)
+
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = local.public_subnets[count.index]
+  availability_zone       = var.availability_zones[count.index]
+  map_public_ip_on_launch = true
+
+  tags = merge(var.tags, {
+    Name = "${var.name}-public-${var.availability_zones[count.index]}"
+    Tier = "public"
+  })
+}
+
+resource "aws_subnet" "private" {
+  count = length(var.availability_zones)
+
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = local.private_subnets[count.index]
+  availability_zone = var.availability_zones[count.index]
+
+  tags = merge(var.tags, {
+    Name = "${var.name}-private-${var.availability_zones[count.index]}"
+    Tier = "private"
+  })
+}
+
+resource "aws_eip" "nat" {
+  count = var.enable_nat_gateway ? 1 : 0
+
+  domain = "vpc"
+
+  tags = merge(var.tags, { Name = "${var.name}-nat-eip" })
+}
+
+resource "aws_nat_gateway" "this" {
+  count = var.enable_nat_gateway ? 1 : 0
+
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.public[0].id
+
+  tags = merge(var.tags, { Name = "${var.name}-nat" })
+
+  depends_on = [aws_internet_gateway.this]
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this.id
+  }
+
+  tags = merge(var.tags, { Name = "${var.name}-public-rt" })
+}
+
+resource "aws_route_table_association" "public" {
+  count = length(var.availability_zones)
+
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.this.id
+
+  dynamic "route" {
+    for_each = var.enable_nat_gateway ? [1] : []
+    content {
+      cidr_block     = "0.0.0.0/0"
+      nat_gateway_id = aws_nat_gateway.this[0].id
+    }
+  }
+
+  tags = merge(var.tags, { Name = "${var.name}-private-rt" })
+}
+
+resource "aws_route_table_association" "private" {
+  count = length(var.availability_zones)
+
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
 }
