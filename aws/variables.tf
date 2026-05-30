@@ -89,7 +89,7 @@ variable "ec2_instance_type" {
 variable "ec2_subnet_placement" {
   description = "Place the EC2 instance in a 'public' or 'private' subnet"
   type        = string
-  default     = "private"
+  default     = "public"
 
   validation {
     condition     = contains(["public", "private"], var.ec2_subnet_placement)

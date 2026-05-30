@@ -56,7 +56,7 @@ variable "allowed_ssh_cidrs" {
 variable "root_volume_size" {
   description = "Root EBS volume size in GiB"
   type        = number
-  default     = 20
+  default     = 30
 }
 
 variable "iam_instance_profile" {
