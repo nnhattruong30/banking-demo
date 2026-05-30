@@ -59,6 +59,12 @@ variable "root_volume_size" {
   default     = 20
 }
 
+variable "iam_instance_profile" {
+  description = "Name of an existing IAM instance profile to attach to the instance. Leave empty to use no profile"
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

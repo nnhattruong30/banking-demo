@@ -16,6 +16,13 @@ module "vpc" {
   tags               = local.tags
 }
 
+module "iam" {
+  source = "./modules/iam"
+
+  name = "${var.project_name}-bastion"
+  tags = local.tags
+}
+
 module "ec2" {
   source = "./modules/ec2"
 
@@ -24,10 +31,11 @@ module "ec2" {
   public_subnet_ids  = module.vpc.public_subnet_ids
   private_subnet_ids = module.vpc.private_subnet_ids
 
-  subnet_placement  = var.ec2_subnet_placement
-  instance_type     = var.ec2_instance_type
-  key_name          = var.ec2_key_name
-  allowed_ssh_cidrs = var.ec2_allowed_ssh_cidrs
+  subnet_placement     = var.ec2_subnet_placement
+  instance_type        = var.ec2_instance_type
+  key_name             = var.ec2_key_name
+  allowed_ssh_cidrs    = var.ec2_allowed_ssh_cidrs
+  iam_instance_profile = module.iam.instance_profile_name
 
   tags = local.tags
 }

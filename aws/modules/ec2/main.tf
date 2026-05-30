@@ -62,6 +62,7 @@ module "ec2" {
   associate_public_ip_address = local.associate_public_ip
   key_name                    = var.key_name != "" ? var.key_name : null
   vpc_security_group_ids      = [aws_security_group.ec2.id]
+  iam_instance_profile        = var.iam_instance_profile != "" ? var.iam_instance_profile : null
 
   root_block_device = {
     size                  = var.root_volume_size
