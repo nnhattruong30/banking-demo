@@ -33,21 +33,26 @@
 #   value       = module.vpc.private_route_table_ids
 # }
 
-# # ── EC2 ────────────────────────────────────────────────────────────────────────
+# ── EC2 ────────────────────────────────────────────────────────────────────────
 
-# output "ec2_instance_id" {
-#   description = "ID of the EC2 instance"
-#   value       = module.ec2.instance_id
-# }
-
-# output "ec2_private_ip" {
-#   description = "Private IP of the EC2 instance"
-#   value       = module.ec2.private_ip
+# output "ec2_public_instance_id" {
+#   description = "ID of the public EC2 instance"
+#   value       = module.ec2_public.instance_id
 # }
 
 # output "ec2_public_ip" {
-#   description = "Public IP of the EC2 instance (only set when ec2_subnet_placement = 'public')"
-#   value       = module.ec2.public_ip
+#   description = "Public IP of the public EC2 instance"
+#   value       = module.ec2_public.public_ip
+# }
+
+# output "ec2_private_instance_id" {
+#   description = "ID of the private EC2 instance"
+#   value       = module.ec2_private.instance_id
+# }
+
+# output "ec2_private_ip" {
+#   description = "Private IP of the private EC2 instance"
+#   value       = module.ec2_private.private_ip
 # }
 
 # # ── EKS ────────────────────────────────────────────────────────────────────────
