@@ -275,7 +275,7 @@ resource "null_resource" "update_kubeconfig" {
   count = var.update_kubeconfig ? 1 : 0
 
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${aws_eks_cluster.this.name} --region ${data.aws_region.current.name}"
+    command = "aws eks update-kubeconfig --name ${aws_eks_cluster.this.name} --region ${data.aws_region.current.region}"
   }
 
   depends_on = [aws_eks_cluster.this]
