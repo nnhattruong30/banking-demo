@@ -16,12 +16,12 @@ module "vpc" {
   tags               = local.tags
 }
 
-module "iam" {
-  source = "./modules/iam"
+# module "iam" {
+#   source = "./modules/iam"
 
-  name = "${var.project_name}-instance"
-  tags = local.tags
-}
+#   name = "${var.project_name}-instance"
+#   tags = local.tags
+# }
 
 # # Two EC2 instances in public and private subnets
 # module "ec2_public" {

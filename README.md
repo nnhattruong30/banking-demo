@@ -26,3 +26,5 @@ After running:
 - **Kong Admin**: http://localhost:8001
 
 
+# Registry
+Github registry
