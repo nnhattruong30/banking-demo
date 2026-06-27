@@ -69,6 +69,7 @@ services:
     build:
       context: .
       dockerfile: services/auth-service/Dockerfile
+    image: ghcr.io/nnhattruong30/banking-demo/auth-service
     container_name: auth-service
     environment:
       DATABASE_URL: postgresql://banking:bankingpass@postgres:5432/banking
@@ -92,6 +93,7 @@ services:
     build:
       context: .
       dockerfile: services/account-service/Dockerfile
+    image: ghcr.io/nnhattruong30/banking-demo/account-service
     container_name: account-service
     environment:
       DATABASE_URL: postgresql://banking:bankingpass@postgres:5432/banking
@@ -114,6 +116,7 @@ services:
     build:
       context: .
       dockerfile: services/transfer-service/Dockerfile
+    image: ghcr.io/nnhattruong30/banking-demo/transfer-service
     container_name: transfer-service
     environment:
       DATABASE_URL: postgresql://banking:bankingpass@postgres:5432/banking
@@ -136,6 +139,7 @@ services:
     build:
       context: .
       dockerfile: services/notification-service/Dockerfile
+    image: ghcr.io/nnhattruong30/banking-demo/notification-service
     container_name: notification-service
     environment:
       DATABASE_URL: postgresql://banking:bankingpass@postgres:5432/banking
@@ -156,6 +160,7 @@ services:
   frontend:
     build: ./frontend
     container_name: banking-frontend
+    image: ghcr.io/nnhattruong30/banking-demo/frontend
     ports:
       - "3000:80"
     depends_on:
