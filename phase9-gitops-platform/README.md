@@ -4,6 +4,8 @@ Triển khai **CI (Jenkins + Kaniko + Harbor)** và **CD (ArgoCD App of Apps)** 
 
 Chi tiết: [PHASE9.md](./PHASE9.md) | Bootstrap: [bootstrap/BOOTSTRAP.md](./bootstrap/BOOTSTRAP.md)
 
+**Lab k3d trên WSL2 (ArgoCD + Nginx + domain):** [k3d/WSL2-K3D-ARGOCD-GUIDE.md](./k3d/WSL2-K3D-ARGOCD-GUIDE.md)
+
 ## 1. Sửa placeholder trong repo
 
 Tìm và thay trong `phase9-gitops-platform/`:
