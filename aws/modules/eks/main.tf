@@ -44,6 +44,12 @@ resource "aws_iam_role" "node" {
   tags = var.tags
 }
 
+# Add SSM
+resource "aws_iam_role_policy_attachment" "node_AmazonSSMManagedInstanceCore" {
+  role       = aws_iam_role.node.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_role_policy_attachment" "node_AmazonEKSWorkerNodePolicy" {
   role       = aws_iam_role.node.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -229,6 +235,7 @@ resource "aws_eks_node_group" "default" {
     aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.node_AmazonEC2ContainerRegistryReadOnly,
+    aws_iam_role_policy_attachment.node_AmazonSSMManagedInstanceCore,
     aws_eks_addon.vpc_cni,
     aws_eks_addon.pod_identity_agent,
   ]
