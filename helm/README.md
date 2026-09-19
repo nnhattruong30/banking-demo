@@ -102,12 +102,12 @@ Override từ parent hoặc sửa trực tiếp trong `charts/<service>/values.y
 
 - **Một release, nhiều subchart**: Cài một lần `helm install banking-demo ./banking-demo -n banking` để deploy namespace, secret, postgres, redis, kong, 4 microservices, frontend và ingress.
 - **Bật/tắt từng component**: Mỗi subchart có `enabled: true/false`. Override từ parent: `--set postgres.enabled=false` hoặc trong file values.
-- **Global**: `global.namespace`, `global.secretName`, `global.corsOrigins`, `global.imagePullSecrets` (parent); subchart nhận override qua key trùng tên, ví dụ `auth-service.secretRef.name`.
+- **Global**: `global.namespace`, `global.secretName`, `global.corsOrigins` (parent); subchart nhận override qua key trùng tên, ví dụ `auth-service.secretRef.name`. `imagePullSecrets` không có key global — set trực tiếp trong `charts/<service>/values.yaml` (mỗi deployment template chỉ đọc `imagePullSecrets` của chính subchart đó).
 - **Thứ tự deploy (Helm hooks)**: Namespace (-10) → Secret (-8) → Postgres, Redis (-5) → Kong và các service còn lại.
 
 ## Cài đặt
 
-**Chuẩn bị:** StorageClass (ví dụ `nfs-client`), imagePullSecrets trong namespace (`dockerhub-registry`, `gitlab-registry`), hoặc override trong values từng chart.
+**Chuẩn bị:** StorageClass (ví dụ `nfs-client`), imagePullSecret `github-registry` trong namespace `banking` (tạo bằng `kubectl create secret docker-registry github-registry --docker-server=ghcr.io ...`; xem `imagePullSecrets` trong `charts/<service>/values.yaml`), hoặc override trong values từng chart.
 
 ```bash
 cd phase2-helm-chart

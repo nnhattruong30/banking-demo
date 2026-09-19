@@ -13,7 +13,7 @@ redis:
     portName: redis
     clusterIP: None
   storage:
-    storageClassName: nfs-client
+    storageClassName: longhorn
     size: 256Mi
     volumeName: redis-data
     mountPath: /data

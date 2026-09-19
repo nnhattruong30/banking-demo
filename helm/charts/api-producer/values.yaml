@@ -3,9 +3,11 @@ api-producer:
   fullnameOverride: api-producer
   enabled: false  # Bật khi dùng values-phase8.yaml
   image:
-    repository: registry.gitlab.com/kiettt164/banking-demo-payment/api-producer
-    tag: 2d4c7af
+    repository: ghcr.io/nnhattruong30/banking-demo/api-producer
+    tag: latest
     pullPolicy: Always
+  imagePullSecrets:
+    - name: github-registry
   replicas: 1
   service:
     port: 8080

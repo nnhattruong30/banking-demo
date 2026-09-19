@@ -3,10 +3,11 @@ frontend:
   fullnameOverride: frontend
   enabled: true
   image:
-    repository: registry.gitlab.com/kiettt164/banking-demo-payment/frontend
-    tag: 2d4c7af
+    repository: ghcr.io/nnhattruong30/banking-demo/frontend
+    tag: latest
     pullPolicy: IfNotPresent
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: github-registry
   replicas: 1
   service:
     port: 80

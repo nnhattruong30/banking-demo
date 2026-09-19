@@ -19,7 +19,7 @@ postgres:
       password: POSTGRES_PASSWORD
       db: POSTGRES_DB
   storage:
-    storageClassName: nfs-client
+    storageClassName: longhorn
     size: 1Gi
     volumeName: pgdata
     mountPath: /var/lib/postgresql/data

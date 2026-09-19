@@ -61,6 +61,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgres.secretRef.name | default (include "banking-demo.secretName" .) }}
                   key: {{ .Values.postgres.secretRef.keys.db }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: {{ .Values.postgres.storage.volumeName }}
               mountPath: {{ .Values.postgres.storage.mountPath }}

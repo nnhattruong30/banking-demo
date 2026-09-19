@@ -19,6 +19,10 @@ spec:
         app: {{ include "banking-demo.api-producer.fullname" . }}
         {{- include "banking-demo.api-producer.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if $svc.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml $svc.imagePullSecrets | nindent 8 }}
+      {{- end }}
       containers:
         - name: api-producer
           image: "{{ $svc.image.repository }}:{{ $svc.image.tag }}"

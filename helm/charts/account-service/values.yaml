@@ -3,10 +3,11 @@ account-service:
   fullnameOverride: account-service
   enabled: true
   image:
-    repository: registry.gitlab.com/kiettt164/banking-demo-payment/account-service
-    tag: 2d4c7af
+    repository: ghcr.io/nnhattruong30/banking-demo/account-service
+    tag: latest
     pullPolicy: Always
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: github-registry
   replicas: 1
   service:
     port: 8002
@@ -17,9 +18,9 @@ account-service:
       databaseUrl: DATABASE_URL
       redisUrl: REDIS_URL
   # Phase 8: RABBITMQ_URL từ Secret (consumer v3)
-  rabbitmqSecretRef:
-    name: rabbitmq-connection-secret
-    key: RABBITMQ_URL
+  # rabbitmqSecretRef:
+  #   name: rabbitmq-connection-secret
+  #   key: RABBITMQ_URL
   corsOrigins: "http://localhost:3000"
   # OpenTelemetry tracing → gửi traces về otel-collector → Tempo
   extraEnv:

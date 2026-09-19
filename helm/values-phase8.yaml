@@ -6,7 +6,7 @@
 api-producer:
   enabled: true
   image:
-    repository: registry.gitlab.com/kiettt164/banking-demo-payment/api-producer
+    repository: ghcr.io/nnhattruong30/banking-demo/api-producer
     tag: latest  # CI cập nhật khi push phase8-application-v3/producer
   rabbitmqSecretRef:
     name: rabbitmq-connection-secret
