@@ -83,7 +83,7 @@ ingress:
 
 # ExternalName Service trỏ tới Kong proxy ở ns kong
 kongExternalService:
-  enabled: true
+  enabled: false
   name: kong-proxy-ext
   externalName: kong-kong-proxy.kong.svc.cluster.local
   port: 8000

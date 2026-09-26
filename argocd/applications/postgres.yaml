@@ -11,11 +11,11 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"  # Deploy sau namespace (infrastructure)
 spec:
-  project: banking-demo
+  project: default
   source:
-    repoURL: https://github.com/kevinram164/banking-demo.git
-    targetRevision: main
-    path: phase2-helm-chart/banking-demo
+    repoURL: https://github.com/nnhattruong30/banking-demo.git
+    targetRevision: feat/my-custom
+    path: helm
     helm:
       releaseName: banking-demo-postgres
       valueFiles:
