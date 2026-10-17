@@ -38,6 +38,6 @@ redis:
     container:
       allowPrivilegeEscalation: false
   hook:
-    preInstall: true
-    preUpgrade: true
+    preInstall: false
+    preUpgrade: false
     weight: "-5"
