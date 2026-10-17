@@ -12,17 +12,17 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"  # Cùng wave với Kong
 spec:
-  project: banking-demo
+  project: default
   source:
-    repoURL: https://github.com/kevinram164/banking-demo.git
-    targetRevision: main
-    path: phase2-helm-chart/banking-demo
+    repoURL: https://github.com/nnhattruong30/banking-demo.git
+    targetRevision: feat/my-custom
+    path: helm
     helm:
       releaseName: banking-demo-api-producer
       valueFiles:
         - charts/common/values.yaml
         - charts/api-producer/values.yaml
-        - values-phase8.yaml
+        # - values-phase8.yaml
       parameters:
         - name: namespace.enabled
           value: "false"
