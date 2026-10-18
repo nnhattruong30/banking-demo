@@ -38,8 +38,8 @@ tempo:
 persistence:
   enabled: true
   size: 5Gi
-  storageClass: monitoring-nfs  # bật nếu dùng NFS
-  storageClassName: monitoring-nfs
+  storageClass: longhorn 
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   mountPath: /var/tempo
