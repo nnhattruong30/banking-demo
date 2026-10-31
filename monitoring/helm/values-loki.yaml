@@ -61,7 +61,7 @@ singleBinary:
       memory: 768Mi
   persistence:
     enabled: true
-    size: 10Gi
+    size: 5Gi
     # IMPORTANT: chart grafana/loki thường dùng key `storageClass` (không phải `storageClassName`)
     # Nếu cluster có default StorageClass thì có thể để trống.
     storageClass: longhorn
