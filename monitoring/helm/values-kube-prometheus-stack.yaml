@@ -55,7 +55,7 @@ prometheus:
       - job_name: kong
         metrics_path: /metrics
         static_configs:
-          - targets: ['kong-kong-admin.kong.svc.cluster.local:8001']
+          - targets: ['kong.banking.svc.cluster.local:8001']
         relabel_configs:
           - source_labels: [__address__]
             target_label: instance
