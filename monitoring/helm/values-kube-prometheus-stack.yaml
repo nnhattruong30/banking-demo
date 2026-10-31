@@ -60,6 +60,22 @@ prometheus:
           - source_labels: [__address__]
             target_label: instance
             replacement: kong
+      - job_name: postgres-exporter
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['postgres-exporter.banking.svc.cluster.local:9187']
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: instance
+            replacement: postgres-exporter
+      - job_name: redis-exporter
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['redis-exporter.banking.svc.cluster.local:9121']
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: instance
+            replacement: redis-exporter
       # Redis HA (Phase 5 — Bitnami metrics sidecar, namespace redis)
       # - job_name: redis
       #   metrics_path: /metrics
