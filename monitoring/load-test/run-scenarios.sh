@@ -21,7 +21,7 @@ run_k6() {
     exit 1
   fi
   docker run --rm -i \
-    -v "$(pwd):/work" -w /work \
+    -v "$(pwd):/work" -w /work --net host \
     grafana/k6 "$@"
 }
 
