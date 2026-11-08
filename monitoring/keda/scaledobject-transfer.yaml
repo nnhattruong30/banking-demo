@@ -7,8 +7,8 @@ metadata:
 spec:
   scaleTargetRef:
     name: transfer-service
-  minReplicaCount: 2
-  maxReplicaCount: 5
+  minReplicaCount: 1
+  maxReplicaCount: 3
   cooldownPeriod: 120
   triggers:
     - type: prometheus
