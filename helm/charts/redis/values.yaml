@@ -11,7 +11,10 @@ redis:
   service:
     port: 6379
     portName: redis
-    clusterIP: None
+    # NodePort expose ra ngoài cluster; clusterIP phải để trống khi type=NodePort
+    type: NodePort
+    nodePort: 30002
+    clusterIP: ""
   storage:
     storageClassName: longhorn
     size: 256Mi

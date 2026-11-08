@@ -11,7 +11,10 @@ postgres:
   service:
     port: 5432
     portName: postgres
-    clusterIP: None
+    # NodePort expose ra ngoài cluster; clusterIP phải để trống khi type=NodePort
+    type: NodePort
+    nodePort: 30001
+    clusterIP: ""
   secretRef:
     name: banking-db-secret
     keys:

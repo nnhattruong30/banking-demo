@@ -13,10 +13,16 @@ metadata:
     app: {{ include "banking-demo.postgres.fullname" . }}
     {{- include "banking-demo.postgres.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.postgres.service.type }}
+  type: {{ .Values.postgres.service.type }}
+  {{- end }}
   ports:
     - port: {{ .Values.postgres.service.port }}
       targetPort: {{ .Values.postgres.service.port }}
       name: {{ .Values.postgres.service.portName }}
+      {{- if and (eq (.Values.postgres.service.type | default "") "NodePort") .Values.postgres.service.nodePort }}
+      nodePort: {{ .Values.postgres.service.nodePort }}
+      {{- end }}
   {{- if .Values.postgres.service.clusterIP }}
   clusterIP: {{ .Values.postgres.service.clusterIP }}
   {{- end }}

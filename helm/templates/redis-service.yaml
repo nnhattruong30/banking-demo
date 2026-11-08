@@ -13,10 +13,16 @@ metadata:
     app: {{ include "banking-demo.redis.fullname" . }}
     {{- include "banking-demo.redis.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.redis.service.type }}
+  type: {{ .Values.redis.service.type }}
+  {{- end }}
   ports:
     - port: {{ .Values.redis.service.port }}
       targetPort: {{ .Values.redis.service.port }}
       name: {{ .Values.redis.service.portName }}
+      {{- if and (eq (.Values.redis.service.type | default "") "NodePort") .Values.redis.service.nodePort }}
+      nodePort: {{ .Values.redis.service.nodePort }}
+      {{- end }}
   {{- if .Values.redis.service.clusterIP }}
   clusterIP: {{ .Values.redis.service.clusterIP }}
   {{- end }}
