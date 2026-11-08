@@ -1,0 +1,31 @@
+{{- if .Values.redis.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "banking-demo.redis.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  {{- if and .Values.redis.hook.preInstall .Values.redis.hook.preUpgrade }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: {{ .Values.redis.hook.weight | quote }}
+  {{- end }}
+  labels:
+    app: {{ include "banking-demo.redis.fullname" . }}
+    {{- include "banking-demo.redis.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.redis.service.type }}
+  type: {{ .Values.redis.service.type }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.redis.service.port }}
+      targetPort: {{ .Values.redis.service.port }}
+      name: {{ .Values.redis.service.portName }}
+      {{- if and (eq (.Values.redis.service.type | default "") "NodePort") .Values.redis.service.nodePort }}
+      nodePort: {{ .Values.redis.service.nodePort }}
+      {{- end }}
+  {{- if .Values.redis.service.clusterIP }}
+  clusterIP: {{ .Values.redis.service.clusterIP }}
+  {{- end }}
+  selector:
+    {{- include "banking-demo.redis.selectorLabels" . | nindent 4 }}
+{{- end }}
