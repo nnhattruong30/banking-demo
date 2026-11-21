@@ -2,9 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: 
+      - main
+      - develop
   pull_request:
-    branches: [main]
+    branches: 
+      - main
+      - develop # TODO remove this when complete the CI
   workflow_dispatch:
 
 jobs:
@@ -14,3 +18,35 @@ jobs:
       - uses: actions/checkout@v4
       - name: Hello world
         run: echo "Hello, world!"
+
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            auth-service:
+              - 'services/auth-service/**'
+            account-service:
+              - 'services/account-service/**'
+            transfer-service:
+              - 'services/transfer-service/**'
+            notification-service:
+              - 'services/notification-service/**'
+            frontend:
+              - 'frontend/**'
+            api-producer:
+              - 'phase8-application-v3/producer/**'
+            phase8:
+              - 'phase8-application-v3/**'
+            common:
+              - 'common/**'
+            any-service:
+              - 'services/**'
+              - 'frontend/**'
+              - 'common/**'
