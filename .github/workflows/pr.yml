@@ -129,3 +129,27 @@ jobs:
         with:
           name: audit-report
           path: audit-report.txt
+
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run Gitleaks
+        run: |
+          docker run --rm -v "$PWD:/path" zricethezav/gitleaks:latest detect \
+            --source /path --report-path /path/secrets-report.json --report-format json 2>&1 | tee secrets-report.txt
+          [ -f secrets-report.json ] && cat secrets-report.json >> secrets-report.txt
+          [ ! -s secrets-report.json ] && echo "No secrets detected" > secrets-report.txt
+          # Gitleaks exits 1 when leaks found -> Block merge
+
+      - name: Upload secrets report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: secrets-report
+          path: secrets-report.txt
+
