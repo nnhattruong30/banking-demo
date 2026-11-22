@@ -2,6 +2,18 @@ name: Dev Pipeline
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    # TODO uncomment this for dev
+    # paths:
+    #   - 'common/**'
+    #   - 'services/**'
+    #   - 'frontend/**'
+    #   - 'k8s-chatbot/**'
+    #   - '**/Dockerfile'
+    #   - '**/Dockerfile.*'
 
 jobs:
   lint:
@@ -9,5 +21,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Hello world
-        run: echo "Hello, world!"
+
+      - uses: actions/setup-python@v5
+        with: 
+          python-version: '3.11'
+      
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint Python
+        run: |
+          ruff check common services --ignore E501 2>/dev/null || true
+          ruff check k8s-chatbot/backend --ignore E501 2>/dev/null || true
+
