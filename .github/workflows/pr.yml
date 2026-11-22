@@ -52,3 +52,23 @@ jobs:
       - name: Run tests
         run: pytest -q tests/
 
+  sast-trivy:
+    name: SAST (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.5
+
+      - name: Trivy FS scan
+        run: |
+          # Block merge when having vulnerabilities
+          trivy fs . --severity HIGH,CRITICAL --ignore-unfixed --format table -o trivy-report.txt
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-report
+          path: trivy-report.txt
