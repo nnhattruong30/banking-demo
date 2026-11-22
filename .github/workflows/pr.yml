@@ -153,3 +153,50 @@ jobs:
           name: secrets-report
           path: secrets-report.txt
 
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-extended
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: language:python
+
+  image-scan:
+    name: Image Base Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy Config Scan (Dockerfile + Helm)
+        uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_HELM_KUBE_VERSION: "1.28"
+        with:
+          version: latest
+          scan-type: config
+          scan-ref: .
+          skip-files: "*.tgz"
+          severity: HIGH,CRITICAL
+          format: table
+          output: image-scan-report.txt
+          exit-code: "1" # Block merge
+
+      - name: Upload image scan report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: image-scan-report
+          path: image-scan-report.txt
