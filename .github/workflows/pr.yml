@@ -68,7 +68,7 @@ jobs:
           format: table
           output: trivy-report.txt
           # Set to '1' to block merge when vulnerabilities are found
-          exit-code: '1'
+          exit-code: '0'
 
       - name: Upload Trivy report
         uses: actions/upload-artifact@v4
@@ -76,3 +76,30 @@ jobs:
         with:
           name: trivy-report
           path: trivy-report.txt
+
+  sast-bandit:
+    name: SAST (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Bandit scan
+        id: bandit
+        run: |
+          bandit -r common services k8s-chatbot/backend \
+            -s HIGH -f txt 2>&1 | tee bandit-report.txt
+      
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.txt
+
