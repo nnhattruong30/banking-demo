@@ -58,13 +58,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Trivy
-        uses: aquasecurity/setup-trivy@v0.2.5
-
       - name: Trivy FS scan
-        run: |
-          # Block merge when having vulnerabilities
-          trivy fs . --severity HIGH,CRITICAL --ignore-unfixed --format table -o trivy-report.txt
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          output: trivy-report.txt
+          # Set to '1' to block merge when vulnerabilities are found
+          exit-code: '1'
 
       - name: Upload Trivy report
         uses: actions/upload-artifact@v4
