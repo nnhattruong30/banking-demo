@@ -34,3 +34,21 @@ jobs:
           ruff check common services --ignore E501 2>/dev/null || true
           ruff check k8s-chatbot/backend --ignore E501 2>/dev/null || true
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: 
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          pip install -r common/requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Run tests
+        run: pytest -q tests/
+
