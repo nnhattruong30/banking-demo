@@ -103,3 +103,29 @@ jobs:
           name: bandit-report
           path: bandit-report.txt
 
+  dep-scan:
+    name: Dependency Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Audit dependencies
+        id: audit
+        run: |
+          # pip-audit exits 1 when vulnerabilities found -> block merge
+          pip-audit -r common/requirements.txt \
+            -r k8s-chatbot/backend/requirements.txt 2>&1 | tee audit-report.txt
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-report
+          path: audit-report.txt
