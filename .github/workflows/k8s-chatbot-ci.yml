@@ -1,15 +1,16 @@
 name: K8s Chatbot CI
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'k8s-chatbot/**'
+  # TODO uncomment when done CI
+  # push:
+  #   branches: [main, develop]
+  #   paths:
+  #     - 'k8s-chatbot/**'
 
-  pull_request:
-    branches: [main]
-    paths:
-      - 'k8s-chatbot/**'
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'k8s-chatbot/**'
 
   workflow_dispatch:
     inputs:
