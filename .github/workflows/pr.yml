@@ -76,6 +76,7 @@ jobs:
         with:
           name: trivy-report
           path: trivy-report.txt
+          retention-days: 1
 
   sast-bandit:
     name: SAST (Bandit)
@@ -102,6 +103,7 @@ jobs:
         with:
           name: bandit-report
           path: bandit-report.txt
+          retention-days: 1
 
   dep-scan:
     name: Dependency Scan
@@ -129,6 +131,7 @@ jobs:
         with:
           name: audit-report
           path: audit-report.txt
+          retention-days: 1
 
   secrets-scan:
     name: Secrets Scan
@@ -152,6 +155,7 @@ jobs:
         with:
           name: secrets-report
           path: secrets-report.txt
+          retention-days: 1
 
   codeql:
     name: CodeQL
@@ -200,6 +204,7 @@ jobs:
         with:
           name: image-scan-report
           path: image-scan-report.txt
+          retention-days: 1
 
   report:
     name: Report
@@ -215,7 +220,9 @@ jobs:
       - image-scan
     if: always()
     permissions:
+      contents: read
       pull-requests: write
+      actions: write   # needed to delete the intermediate artifacts
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -324,6 +331,50 @@ jobs:
           echo "---" >> report.md
           echo "*Branch:* \`${{ github.head_ref || github.ref_name }}\` | *Commit:* \`${{ github.sha }}\`" >> report.md
       
+      - name: Build single HTML report
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import html, os, pathlib
+          sections = [("Trivy (SAST)", "trivy-report"), ("Bandit (SAST)", "bandit-report"),
+                      ("Dependency Scan", "audit-report"), ("Secrets Scan", "secrets-report"),
+                      ("Image / Config Scan", "image-scan-report")]
+          out = ["<!doctype html><meta charset=utf-8><title>DevSecOps Report</title>",
+                 "<style>body{font:14px sans-serif;max-width:1100px;margin:2em auto;padding:0 1em}"
+                 "pre{background:#f6f8fa;padding:1em;overflow:auto}</style>",
+                 "<h1>DevSecOps Report</h1>", f"<p>Commit <code>{os.environ['GITHUB_SHA']}</code></p>"]
+          summary = ["## DevSecOps full reports\n"]
+          for title, name in sections:
+              f = pathlib.Path(name) / f"{name}.txt"
+              text = f.read_text(errors="replace") if f.exists() else "(no report produced)"
+              out.append(f"<details open><summary><h2 style='display:inline'>{title}</h2></summary><pre>{html.escape(text)}</pre></details>")
+              summary.append(f"<details><summary>{title}</summary>\n\n```\n{text[:50000]}\n```\n</details>\n")
+          pathlib.Path("devsecops-report.html").write_text("\n".join(out))
+          pathlib.Path("summary.md").write_text("\n".join(summary))
+          PY
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload combined report (viewable in browser)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: devsecops-report.html
+          path: devsecops-report.html
+          archive: false   # no zip -> opens directly in the browser
+          retention-days: 14
+
+      - name: Delete intermediate artifacts
+        if: always()
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            trivy-report
+            bandit-report
+            audit-report
+            secrets-report
+            image-scan-report
+          failOnError: false
+
       - name: Comment on PR
         uses: actions/github-script@v7
         with:
@@ -333,7 +384,7 @@ jobs:
             // GitHub comment limit is 65536 chars; keep a safety margin
             const MAX = 60000;
             if (report.length > MAX) {
-              report = report.slice(0, MAX) + '\n\n... (report truncated, see workflow run artifacts for full output)';
+              report = report.slice(0, MAX) + '\n\n... (report truncated, see the devsecops-report.html artifact / job summary for full output)';
             }
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
