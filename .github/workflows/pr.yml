@@ -258,10 +258,10 @@ jobs:
 
             if [ "${{ needs.sast-trivy.result }}" != "success" ]; then
               for f in "trivy-report/trivy-report.txt" "trivy-report.txt"; do
-                [-f "$f"] && {
+                [ -f "$f" ] && {
                   echo "<details><summary>Trivy Report</summary>" >> report.md; 
                   echo '```' >> report.md; 
-                  cat "$f" >> report.md; 
+                  head -c 8000 "$f" >> report.md; 
                   echo '```' >> report.md; 
                   echo "</details>" >> report.md; 
                   break;
@@ -273,7 +273,7 @@ jobs:
                 [ -f "$f" ] && { 
                   echo "<details><summary>Bandit Report</summary>" >> report.md; 
                   echo '```' >> report.md; 
-                  cat "$f" >> report.md; 
+                  head -c 8000 "$f" >> report.md; 
                   echo '```' >> report.md; 
                   echo "</details>" >> report.md; 
                   break; 
@@ -285,7 +285,7 @@ jobs:
                 [ -f "$f" ] && { 
                   echo "<details><summary>Dependency Scan Report</summary>" >> report.md; 
                   echo '```' >> report.md; 
-                  cat "$f" >> report.md; 
+                  head -c 8000 "$f" >> report.md; 
                   echo '```' >> report.md; 
                   echo "</details>" >> report.md; 
                   break; 
@@ -297,7 +297,7 @@ jobs:
                 [ -f "$f" ] && { 
                   echo "<details><summary>Secrets Scan Report</summary>" >> report.md;
                   echo '```' >> report.md;
-                  cat "$f" >> report.md;
+                  head -c 8000 "$f" >> report.md;
                   echo '```' >> report.md;
                   echo "</details>" >> report.md;
                   break;
@@ -309,7 +309,7 @@ jobs:
                 [ -f "$f" ] && { 
                   echo "<details><summary>Image Base Scan Report</summary>" >> report.md;
                   echo '```' >> report.md;
-                  cat "$f" >> report.md;
+                  head -c 8000 "$f" >> report.md;
                   echo '```' >> report.md;
                   echo "</details>" >> report.md;
                   break;
@@ -329,7 +329,12 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('report.md', 'utf8');
+            let report = fs.readFileSync('report.md', 'utf8');
+            // GitHub comment limit is 65536 chars; keep a safety margin
+            const MAX = 60000;
+            if (report.length > MAX) {
+              report = report.slice(0, MAX) + '\n\n... (report truncated, see workflow run artifacts for full output)';
+            }
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
