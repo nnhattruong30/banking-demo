@@ -1,0 +1,409 @@
+name: Dev Pipeline
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    # TODO uncomment this for dev
+    # paths:
+    #   - 'common/**'
+    #   - 'services/**'
+    #   - 'frontend/**'
+    #   - 'k8s-chatbot/**'
+    #   - '**/Dockerfile'
+    #   - '**/Dockerfile.*'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: 
+          python-version: '3.11'
+      
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint Python
+        run: |
+          ruff check common services --ignore E501 2>/dev/null || true
+          ruff check k8s-chatbot/backend --ignore E501 2>/dev/null || true
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: 
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          pip install -r common/requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Run tests
+        run: pytest -q tests/
+
+  sast-trivy:
+    name: SAST (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy FS scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          output: trivy-report.txt
+          # Set to '1' to block merge when vulnerabilities are found
+          exit-code: '0'
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-report
+          path: trivy-report.txt
+          retention-days: 1
+
+  sast-bandit:
+    name: SAST (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Bandit scan
+        id: bandit
+        run: |
+          bandit -r common services k8s-chatbot/backend \
+            -s HIGH -f txt 2>&1 | tee bandit-report.txt
+      
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.txt
+          retention-days: 1
+
+  dep-scan:
+    name: Dependency Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Audit dependencies
+        id: audit
+        run: |
+          # pip-audit exits 1 when vulnerabilities found -> block merge
+          pip-audit -r common/requirements.txt \
+            -r k8s-chatbot/backend/requirements.txt 2>&1 | tee audit-report.txt
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-report
+          path: audit-report.txt
+          retention-days: 1
+
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run Gitleaks
+        run: |
+          docker run --rm -v "$PWD:/path" zricethezav/gitleaks:latest detect \
+            --source /path --report-path /path/secrets-report.json --report-format json 2>&1 | tee secrets-report.txt
+          [ -f secrets-report.json ] && cat secrets-report.json >> secrets-report.txt
+          [ ! -s secrets-report.json ] && echo "No secrets detected" > secrets-report.txt
+          # Gitleaks exits 1 when leaks found -> Block merge
+
+      - name: Upload secrets report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: secrets-report
+          path: secrets-report.txt
+          retention-days: 1
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-extended
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: language:python
+
+  image-scan:
+    name: Image Base Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy Config Scan (Dockerfile + Helm)
+        uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_HELM_KUBE_VERSION: "1.28"
+        with:
+          version: latest
+          scan-type: config
+          scan-ref: .
+          skip-files: "*.tgz"
+          severity: HIGH,CRITICAL
+          format: table
+          output: image-scan-report.txt
+          exit-code: "1" # Block merge
+
+      - name: Upload image scan report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: image-scan-report
+          path: image-scan-report.txt
+          retention-days: 1
+
+  report:
+    name: Report
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - test
+      - sast-trivy
+      - sast-bandit
+      - dep-scan
+      - secrets-scan
+      - codeql
+      - image-scan
+    if: always()
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: write   # needed to delete the intermediate artifacts
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          merge-multiple: false
+
+      - name: Build Report
+        id: report
+        run: |
+          {
+            echo "## DevSecOps Report"
+            echo ""
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| Lint | ${{ needs.lint.result }} |"
+            echo "| Test | ${{ needs.test.result }} |"
+            echo "| SAST (Trivy) | ${{ needs.sast-trivy.result }} |"
+            echo "| SAST (Bandit) | ${{ needs.sast-bandit.result }} |"
+            echo "| Dependency Scan | ${{ needs.dep-scan.result }} |"
+            echo "| Secrets Scan | ${{ needs.secrets-scan.result }} |"
+            echo "| CodeQL (CA) | ${{ needs.codeql.result }} |"
+            echo "| Image Base Scan | ${{ needs.image-scan.result }} |"
+            echo ""
+          } > report.md
+
+          FAILED=""
+          [ "${{ needs.lint.result }}" != "success" ] && FAILED="$FAILED Lint"
+          [ "${{ needs.test.result }}" != "success" ] && FAILED="$FAILED Test"
+          [ "${{ needs.sast-trivy.result }}" != "success" ] && FAILED="$FAILED SAST-Trivy"
+          [ "${{ needs.sast-bandit.result }}" != "success" ] && FAILED="$FAILED SAST-Bandit"
+          [ "${{ needs.dep-scan.result }}" != "success" ] && FAILED="$FAILED DepScan"
+          [ "${{ needs.secrets-scan.result }}" != "success" ] && FAILED="$FAILED Secrets"
+          [ "${{ needs.codeql.result }}" != "success" ] && FAILED="$FAILED CodeQL"
+          [ "${{ needs.image-scan.result }}" != "success" ] && FAILED="$FAILED ImageScan"
+
+          if [ -n "$FAILED" ]; then
+            echo "**Merge blocked.** Failed:${FAILED}" >> report.md
+            echo "" >> report.md
+
+            if [ "${{ needs.sast-trivy.result }}" != "success" ]; then
+              for f in "trivy-report/trivy-report.txt" "trivy-report.txt"; do
+                [ -f "$f" ] && {
+                  echo "<details><summary>Trivy Report</summary>" >> report.md; 
+                  echo '```' >> report.md; 
+                  head -c 8000 "$f" >> report.md; 
+                  echo '```' >> report.md; 
+                  echo "</details>" >> report.md; 
+                  break;
+                }
+              done
+            fi
+            if [ "${{ needs.sast-bandit.result }}" != "success" ]; then
+              for f in "bandit-report/bandit-report.txt" "bandit-report.txt"; do
+                [ -f "$f" ] && { 
+                  echo "<details><summary>Bandit Report</summary>" >> report.md; 
+                  echo '```' >> report.md; 
+                  head -c 8000 "$f" >> report.md; 
+                  echo '```' >> report.md; 
+                  echo "</details>" >> report.md; 
+                  break; 
+                }
+              done
+            fi
+            if [ "${{ needs.dep-scan.result }}" != "success" ]; then
+              for f in "audit-report/audit-report.txt" "audit-report.txt"; do
+                [ -f "$f" ] && { 
+                  echo "<details><summary>Dependency Scan Report</summary>" >> report.md; 
+                  echo '```' >> report.md; 
+                  head -c 8000 "$f" >> report.md; 
+                  echo '```' >> report.md; 
+                  echo "</details>" >> report.md; 
+                  break; 
+                }
+              done
+            fi
+            if [ "${{ needs.secrets-scan.result }}" != "success" ]; then
+              for f in "secrets-report/secrets-report.txt" "secrets-report.txt"; do
+                [ -f "$f" ] && { 
+                  echo "<details><summary>Secrets Scan Report</summary>" >> report.md;
+                  echo '```' >> report.md;
+                  head -c 8000 "$f" >> report.md;
+                  echo '```' >> report.md;
+                  echo "</details>" >> report.md;
+                  break;
+                }
+              done
+            fi
+            if [ "${{ needs.image-scan.result }}" != "success" ]; then
+              for f in "image-scan-report/image-scan-report.txt" "image-scan-report.txt"; do
+                [ -f "$f" ] && { 
+                  echo "<details><summary>Image Base Scan Report</summary>" >> report.md;
+                  echo '```' >> report.md;
+                  head -c 8000 "$f" >> report.md;
+                  echo '```' >> report.md;
+                  echo "</details>" >> report.md;
+                  break;
+                }
+              done
+            fi
+          else
+            echo "All checks passed." >> report.md
+          fi
+
+          echo "" >> report.md
+          echo "---" >> report.md
+          echo "*Branch:* \`${{ github.head_ref || github.ref_name }}\` | *Commit:* \`${{ github.sha }}\`" >> report.md
+      
+      - name: Build single HTML report
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import html, os, pathlib
+          sections = [("Trivy (SAST)", "trivy-report"), ("Bandit (SAST)", "bandit-report"),
+                      ("Dependency Scan", "audit-report"), ("Secrets Scan", "secrets-report"),
+                      ("Image / Config Scan", "image-scan-report")]
+          out = ["<!doctype html><meta charset=utf-8><title>DevSecOps Report</title>",
+                 "<style>body{font:14px sans-serif;max-width:1100px;margin:2em auto;padding:0 1em}"
+                 "pre{background:#f6f8fa;padding:1em;overflow:auto}</style>",
+                 "<h1>DevSecOps Report</h1>", f"<p>Commit <code>{os.environ['GITHUB_SHA']}</code></p>"]
+          summary = ["## DevSecOps full reports\n"]
+          for title, name in sections:
+              f = pathlib.Path(name) / f"{name}.txt"
+              text = f.read_text(errors="replace") if f.exists() else "(no report produced)"
+              out.append(f"<details open><summary><h2 style='display:inline'>{title}</h2></summary><pre>{html.escape(text)}</pre></details>")
+              summary.append(f"<details><summary>{title}</summary>\n\n```\n{text[:50000]}\n```\n</details>\n")
+          pathlib.Path("devsecops-report.html").write_text("\n".join(out))
+          pathlib.Path("summary.md").write_text("\n".join(summary))
+          PY
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload combined report (viewable in browser)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: devsecops-report.html
+          path: devsecops-report.html
+          archive: false   # no zip -> opens directly in the browser
+          retention-days: 14
+
+      - name: Delete intermediate artifacts
+        if: always()
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            trivy-report
+            bandit-report
+            audit-report
+            secrets-report
+            image-scan-report
+          failOnError: false
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = fs.readFileSync('report.md', 'utf8');
+            // GitHub comment limit is 65536 chars; keep a safety margin
+            const MAX = 60000;
+            if (report.length > MAX) {
+              report = report.slice(0, MAX) + '\n\n... (report truncated, see the devsecops-report.html artifact / job summary for full output)';
+            }
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('DevSecOps Report'));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }

@@ -1,20 +1,21 @@
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      # Chỉ chạy khi code thay đổi, KHÔNG chạy khi chỉ đổi helm values/k8s manifests
-      - 'common/**'
-      - 'services/**'
-      - 'frontend/**'
-      #- 'phase4-application-v2/**'
-      - 'phase8-application-v3/**'
-      # KHÔNG trigger khi đổi:
-      # - phase2-helm-chart/**
-      # - phase3-monitoring-keda/**
-      # - k8s/**
-      # - *.md
+  # TODO uncomment when done CI
+  # push:
+  #   branches: [main, develop]
+  #   paths:
+  #     # Chỉ chạy khi code thay đổi, KHÔNG chạy khi chỉ đổi helm values/k8s manifests
+  #     - 'common/**'
+  #     - 'services/**'
+  #     - 'frontend/**'
+  #     #- 'phase4-application-v2/**'
+  #     - 'phase8-application-v3/**'
+  #     # KHÔNG trigger khi đổi:
+  #     # - phase2-helm-chart/**
+  #     # - phase3-monitoring-keda/**
+  #     # - k8s/**
+  #     # - *.md
 
   # KHÔNG trigger CI trên PR — PR dùng DevSecOps pipeline (devsecops-pr.yml)
   # CI chỉ chạy khi push vào main/develop (sau khi merge)
